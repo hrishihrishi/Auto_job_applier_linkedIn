@@ -1140,7 +1140,7 @@ def save_job() -> None:
         if not easy_apply_modal_is_open(): return
     logger.warning("The Easy Apply modal is still open after trying to save it.")
 
-
+# Contributor : Hrishikesh H : github.com/hrishihrishi - Feat to save the draft of the job application when configured, otherwise discard it.
 # Function to save the job application draft when configured, otherwise discard it.
 def save_or_discard() -> None:
     '''
