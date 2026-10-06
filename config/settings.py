@@ -97,6 +97,9 @@ auto_manage_driver = True          # True or False, Note: True or False are case
 # Do you want to get alerts on errors related to AI API connection?
 showAiErrorAlerts = False            # True or False, Note: True or False are case-sensitive
 
+# If an Easy Apply flow fails and the bot cannot finish it on its own, save the draft
+# in LinkedIn instead of discarding it. When False, failed attempts are discarded.
+draft_save = False                   # True or False, Note: True or False are case-sensitive
 
 
 

@@ -175,6 +175,34 @@ def test_easy_apply_detection_is_an_ordered_fallback_list(bot):
     assert "artdeco-button--3" not in source                 # the size token is gone everywhere
 
 
+# ---------------------- draft save / discard decision -----------------------
+def test_draft_save_setting_is_always_defined(bot):
+    assert hasattr(bot, "draft_save")
+    assert isinstance(bot.draft_save, bool)
+
+
+def test_save_or_discard_saves_when_draft_save_is_on(bot, monkeypatch):
+    calls = []
+    monkeypatch.setattr(bot, "draft_save", True, raising=False)
+    monkeypatch.setattr(bot, "save_job", lambda: calls.append("save"), raising=False)
+    monkeypatch.setattr(bot, "discard_job", lambda: calls.append("discard"), raising=False)
+
+    bot.save_or_discard()
+
+    assert calls == ["save"]
+
+
+def test_save_or_discard_discards_when_draft_save_is_off(bot, monkeypatch):
+    calls = []
+    monkeypatch.setattr(bot, "draft_save", False, raising=False)
+    monkeypatch.setattr(bot, "save_job", lambda: calls.append("save"), raising=False)
+    monkeypatch.setattr(bot, "discard_job", lambda: calls.append("discard"), raising=False)
+
+    bot.save_or_discard()
+
+    assert calls == ["discard"]
+
+
 # ------------------------------- M: the no-submit flag -----------------------------
 def test_stop_before_submit_setting_is_always_defined(bot):
     assert isinstance(bot.stop_before_submit, bool)

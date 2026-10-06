@@ -200,6 +200,7 @@ def validate_settings() -> None | ValueError | TypeError:
     check_boolean(smooth_scroll, "smooth_scroll")
     check_boolean(keep_screen_awake, "keep_screen_awake")
     check_boolean(auto_manage_driver, "auto_manage_driver")
+    check_boolean(draft_save, "draft_save")
 
 
 

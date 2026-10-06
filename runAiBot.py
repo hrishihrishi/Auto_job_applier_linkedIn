@@ -394,7 +394,7 @@ def get_job_main_details(job: WebElement, blacklisted_companies: set, rejected_j
     except Exception as e:
         logger.warning('Failed to click "%s | %s" job on details button. Job ID: %s!', title, company, job_id)
         # print_lg(e)
-        discard_job()
+        save_or_discard()
         job_details_button.click() # To pass the error outside
     buffer(click_gap)
     return (job_id,title,company,work_location,work_style,skip)
@@ -1119,11 +1119,39 @@ def submitted_jobs(job_id: str, title: str, company: str, work_location: str, wo
 # The "Save this application?" confirmation that the modal's Dismiss button raises.
 # `data-control-name` is the language-independent anchor; the text is the fallback.
 discard_button_xpath = ".//button[@data-control-name='discard_application_confirm_btn' or contains(normalize-space(.), 'Discard')]"
+save_button_xpath = ".//button[@data-control-name='save_application_btn' or contains(normalize-space(.), 'Save')]"
+
 
 def easy_apply_modal_is_open() -> bool:
     '''True while an Easy Apply modal is still on screen and swallowing every click.'''
     try: return any(m.is_displayed() for m in driver.find_elements(By.CLASS_NAME, "jobs-easy-apply-modal"))
     except Exception: return False
+
+# Function to save the job application
+def save_job() -> None:
+    '''
+    Close the Easy Apply modal and save the draft.
+    '''
+    for dismiss in (lambda: try_xp(driver, ".//button[@data-test-modal-close-btn]"),
+                    lambda: actions.send_keys(Keys.ESCAPE).perform()):
+        try: dismiss()
+        except Exception as e: logger.warning("Couldn't dismiss the application modal after saving it. %s", e)
+        wait_xp_click(driver, save_button_xpath, 5)
+        if not easy_apply_modal_is_open(): return
+    logger.warning("The Easy Apply modal is still open after trying to save it.")
+
+
+# Function to save the job application draft when configured, otherwise discard it.
+def save_or_discard() -> None:
+    '''
+    Save the in-progress Easy Apply draft when the user wants draft retention;
+    otherwise close the modal and discard the draft.
+    '''
+    if globals().get("draft_save", False):
+        save_job()
+        return
+    discard_job()
+
 
 # Function to discard the job application
 def discard_job() -> None:
@@ -1409,14 +1437,14 @@ def apply_to_jobs(search_terms: list[str]) -> None:
                             # failed made a perfectly good stop_before_submit run read as 0/0/all-failed.
                             print_lg(str(e))
                             skip_count += 1
-                            discard_job()
+                            save_or_discard()
                             continue
 
                         except UnansweredQuestions as e:
                             print_lg(str(e))
                             print_lg("Add those answers to config/questions.py and re-run to apply to this job.")
                             skip_count += 1
-                            discard_job()
+                            save_or_discard()
                             continue
 
                         except Exception as e:
@@ -1425,7 +1453,7 @@ def apply_to_jobs(search_terms: list[str]) -> None:
                             critical_error_log("Somewhere in Easy Apply process",e)
                             failed_job(job_id, job_link, resume, date_listed, "Problem in Easy Applying", e, application_link, screenshot_name)
                             failed_count += 1
-                            discard_job()
+                            save_or_discard()
                             continue
                     else:
                         # Case 2: Apply externally
